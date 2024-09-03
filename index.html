@@ -49,70 +49,44 @@
 <script>
   function combinationSum(numbers, targetSum) {
     const results = [];
-    const current = [];
-    const start = 0;
-    const sum = 0;
-
-    const result_values = backtrack(numbers, targetSum, start, current, sum, results);
-    if(result_values === false){
-      return [];
-    }
-    return result_values;
+    backtrack(numbers, targetSum, 0, [], results);
+    return results.length > 0 ? results : [];
   }
 
-  /**
-   * numbers にある数字から、targetSum になる組み合わせを探す。ただし、numbers の数字は一度しか使えない。
-   * @param numbers
-   * @param targetSum
-   * @param start
-   * @param current
-   * @param sum
-   * @param results
-   */
-  function backtrack(numbers, targetSum, start, current, sum, results) {
-    if(numbers.length <= 0){
+  function backtrack(numbers, targetSum, start, current, results) {
+    if (targetSum === 0) {
+      results.push([...current]);
+      return true;
+    }
+
+    if (targetSum < 0) {
       return false;
     }
 
-    // numbers の数値部分だけを取り出す
-    const first = numbers[0];
+    for (let i = start; i < numbers.length; i++) {
+      const num = numbers[i];
 
-    if(first === targetSum){
-      results.push([...current, first]);
-      return results;
-    }
+      // 同じ数字を使うための考慮
+      if (i > start && numbers[i] === numbers[i - 1]) continue; // 重複の排除
 
-    if(first <= 0){
-      return backtrack(numbers.slice(1), targetSum, start, current, sum, results);
-    }
-
-    // 1. その数字を使う場合
-    const current_num = start + first;
-    if(current_num === targetSum) {
-      results.push([...current, first]);
-      return results;
-    } else if(current_num > targetSum){
-      return false;
-    } else {
-      const r = backtrack(numbers.slice(1), targetSum, current_num, [...current, first], current_num, results);
-      if(r !== false){
-        return r;
+      // 数字を使う場合
+      current.push(num);
+      if (backtrack(numbers, targetSum - num, i + 1, current, results)) {
+        return true;
       }
+      current.pop(); // 数字を使わない場合に備えて元に戻す
     }
 
-    // 2. その数字を使わない場合
-    const r = backtrack(numbers.slice(1), targetSum, start, current, sum, results);
-    if(r !== false){
-      return r;
-    }
     return false;
   }
+
 
   document.getElementById('combination-form').addEventListener('submit', function(event) {
     event.preventDefault();
 
     // フォームデータの取得
     const numbers = document.getElementById('numbers').value.split(' ').map((n) => parseInt(n.replace(/,/g, ''), 10));
+    console.log("Numbers", numbers);
     const targetSum = parseInt(
         document.getElementById('target-sum').value,
     );
