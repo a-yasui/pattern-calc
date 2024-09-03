@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数値の組み合わせを探すツール</title>
+    <!-- BootstrapのCSSを追加 -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="mb-4">数値の組み合わせを探すツール</h1>
+    <div class="card p-4">
+        <form id="combination-form">
+            <!-- 集合Aの入力 -->
+            <div class="form-group">
+                <label for="numbers">数値の入力 (空白区切り):</label>
+                <input type="text" id="numbers" name="numbers" class="form-control" placeholder="例: 1 2 3 4 5"
+                       required>
+            </div>
+
+            <!-- 合算結果Kの入力 -->
+            <div class="form-group">
+                <label for="target-sum">期待する合算結果 (K):</label>
+                <input type="number" id="target-sum" name="target-sum" class="form-control" placeholder="例: 10"
+                       required>
+            </div>
+
+            <!-- 送信ボタン -->
+            <button type="submit" class="btn btn-primary">組み合わせを探す</button>
+        </form>
+    </div>
+
+    <!-- 回答Aの表示エリア -->
+    <div class="mt-4">
+        <h2>結果</h2>
+        <div id="results" class="p-3 border bg-light flex-grow-1">
+            <p id="result-text">ここに組み合わせの結果が表示されます。</p>
+        </div>
+        <button class="btn btn-secondary ml-2" id="copy-button">コピー</button>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+  function combinationSum(numbers, targetSum) {
+    const results = [];
+    const current = [];
+    const start = 0;
+    const sum = 0;
+
+    const result_values = backtrack(numbers, targetSum, start, current, sum, results);
+    if(result_values === false){
+      return [];
+    }
+    return result_values;
+  }
+
+  /**
+   * numbers にある数字から、targetSum になる組み合わせを探す。ただし、numbers の数字は一度しか使えない。
+   * @param numbers
+   * @param targetSum
+   * @param start
+   * @param current
+   * @param sum
+   * @param results
+   */
+  function backtrack(numbers, targetSum, start, current, sum, results) {
+    if(numbers.length <= 0){
+      return false;
+    }
+
+    // numbers の数値部分だけを取り出す
+    const first = numbers[0];
+
+    if(first === targetSum){
+      results.push([...current, first]);
+      return results;
+    }
+
+    if(first <= 0){
+      return backtrack(numbers.slice(1), targetSum, start, current, sum, results);
+    }
+
+    // 1. その数字を使う場合
+    const current_num = start + first;
+    if(current_num === targetSum) {
+      results.push([...current, first]);
+      return results;
+    } else if(current_num > targetSum){
+      return false;
+    } else {
+      const r = backtrack(numbers.slice(1), targetSum, current_num, [...current, first], current_num, results);
+      if(r !== false){
+        return r;
+      }
+    }
+
+    // 2. その数字を使わない場合
+    const r = backtrack(numbers.slice(1), targetSum, start, current, sum, results);
+    if(r !== false){
+      return r;
+    }
+    return false;
+  }
+
+  document.getElementById('combination-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // フォームデータの取得
+    const numbers = document.getElementById('numbers').value.split(' ').map((n) => parseInt(n.replace(/,/g, ''), 10));
+    const targetSum = parseInt(
+        document.getElementById('target-sum').value,
+    );
+
+    // 組み合わせの計算
+    const results = combinationSum(numbers, targetSum);
+    console.log(results);
+
+    // 組み合わせの計算と結果の表示（仮の処理）
+    const resultsDiv = document.getElementById('result-text');
+
+    if(results.length === 0){
+      resultsDiv.innerHTML = '<p>組み合わせが見つかりませんでした。</p>';
+      return;
+    }
+    resultsDiv.innerHTML =
+        '<p>' + results.map((n) => n.toString()).join("<br />") + '</p>';
+  });
+
+  // コピー機能
+  document.getElementById('copy-button').addEventListener('click', function() {
+    const resultTextElement = document.getElementById('result-text');
+    const range = document.createRange();
+    range.selectNode(resultTextElement);
+    window.getSelection().removeAllRanges(); // 既存の選択を解除
+    window.getSelection().addRange(range); // 新しい選択を追加
+
+    try {
+      document.execCommand('copy');
+      alert('結果がクリップボードにコピーされました！');
+    } catch (err) {
+      alert('コピーに失敗しました。');
+    }
+    window.getSelection().removeAllRanges(); // 選択を解除
+  });
+
+</script>
+</body>
+</html>
